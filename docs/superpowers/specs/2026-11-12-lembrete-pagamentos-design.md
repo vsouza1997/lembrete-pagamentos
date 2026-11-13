@@ -13,11 +13,14 @@ Ferramenta para a esposa do Victor lembrar as alunas, pelo WhatsApp, dos dias de
 - Login com Google, restrito a um único usuário (a esposa).
 - Dados no Firestore.
 - Tela **Hoje** com duas listas: **Vencem hoje** e **Atrasadas**.
+- Uma terceira lista, **Pagas neste mês**, mostra quem já pagou e permite **Desfazer**.
 - Cada aluna na lista mostra nome, valor (se houver) e dois botões:
   - **Lembrar**: abre `https://wa.me/<telefone>?text=<mensagem>` com a mensagem pronta; ela só toca em enviar.
   - **Paga**: registra o pagamento do mês corrente; a aluna sai da lista.
 - Aba **Alunas**: cadastrar, editar, desativar.
 - Modelo de mensagem editável com variáveis `{nome}`, `{valor}`, `{dia}`.
+
+### Decisão: o projeto fica no semi-automático (wa.me). O automático abaixo é só um plus futuro, sem prazo e sem opção escolhida.
 
 ### Fora da v1 (plus futuro): envio automático
 - Envio sem toque, em horário agendado.
@@ -27,7 +30,7 @@ Ferramenta para a esposa do Victor lembrar as alunas, pelo WhatsApp, dos dias de
 ## Dados (Firestore)
 
 - `alunas/{id}`: `nome`, `telefone` (formato 55DDDNÚMERO, só dígitos), `diaVencimento` (1–31), `valor` (opcional), `ativa` (bool).
-- `pagamentos/{id}`: `alunaId`, `mes` ("AAAA-MM"), `pagoEm` (timestamp). Um registro por aluna por mês.
+- `pagamentos/{alunaId}_{AAAA-MM}`: `alunaId`, `mes` ("AAAA-MM"), `pagoEm` (timestamp). O id determinístico garante um registro por aluna por mês.
 - `config/mensagem`: texto do modelo de mensagem.
 
 ## Regras de negócio
