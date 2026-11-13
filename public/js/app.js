@@ -63,3 +63,6 @@ function mostrarApp() {
 }
 
 observarLogin((usuario) => (usuario ? mostrarApp() : mostrarLogin()));
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
