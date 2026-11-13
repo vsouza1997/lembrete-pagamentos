@@ -1,0 +1,28 @@
+:root { --verde: #25a56a; --texto: #1f2933; --fundo: #f6f8f7; --borda: #dde3e0; --erro: #c0392b; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; color: var(--texto); background: var(--fundo); }
+#app { max-width: 560px; margin: 0 auto; padding-bottom: 3rem; }
+.topo { display: flex; justify-content: space-between; align-items: center; padding: 1rem; }
+.topo h1 { margin: 0; font-size: 1.25rem; }
+.abas { display: flex; gap: .5rem; padding: 0 1rem; }
+.abas button { flex: 1; padding: .6rem; border: 1px solid var(--borda); background: #fff; border-radius: 8px; font-size: 1rem; }
+.abas button.ativa { background: var(--verde); color: #fff; border-color: var(--verde); }
+.conteudo { padding: 1rem; }
+h2 { font-size: 1rem; margin: 1.5rem 0 .5rem; }
+.cartao { background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: .75rem; margin-bottom: .5rem; }
+.cartao .nome { font-weight: 600; }
+.cartao .detalhe { color: #52606d; font-size: .9rem; margin: .15rem 0 .5rem; }
+.cartao .acoes { display: flex; gap: .5rem; }
+button { font: inherit; cursor: pointer; }
+button.principal { background: var(--verde); color: #fff; border: 0; border-radius: 8px; padding: .6rem 1rem; }
+button.secundario { background: #fff; border: 1px solid var(--borda); border-radius: 8px; padding: .6rem 1rem; }
+button.link { background: none; border: 0; color: #2b6cb0; padding: .25rem; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.vazio { color: #7b8794; }
+.erro { color: var(--erro); }
+.inativa { opacity: .6; }
+form label { display: block; margin: .6rem 0; font-size: .9rem; }
+form input, form textarea { display: block; width: 100%; margin-top: .25rem; padding: .6rem; font: inherit; border: 1px solid var(--borda); border-radius: 8px; }
+form small.erro { display: block; min-height: 1em; }
+.previa { background: #e7f7ee; border-radius: 10px; padding: .75rem; white-space: pre-wrap; }
+.login { text-align: center; padding: 4rem 1rem; }
