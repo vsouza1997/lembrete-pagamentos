@@ -35,3 +35,21 @@ test('dia precisa ser inteiro de 1 a 31', () => {
 test('valor negativo é inválido', () => {
   assert.ok(validarAluna({ ...base, valor: '-5' }).erros.valor);
 });
+
+test('valor rejeita formatos que Number() aceita mas não são decimais', () => {
+  for (const valor of ['Infinity', '1e3', '0x10']) {
+    assert.ok(validarAluna({ ...base, valor }).erros.valor, `valor ${valor} deveria ser inválido`);
+  }
+});
+
+test('dia rejeita formatos que Number() aceita mas não são inteiros decimais', () => {
+  for (const dia of ['0x1F', '1e1']) {
+    assert.ok(validarAluna({ ...base, dia }).erros.dia, `dia ${dia} deveria ser inválido`);
+  }
+});
+
+test('valor aceita inteiro e decimal com vírgula ou ponto', () => {
+  assert.equal(validarAluna({ ...base, valor: '150' }).aluna.valor, 150);
+  assert.equal(validarAluna({ ...base, valor: '150,5' }).aluna.valor, 150.5);
+  assert.equal(validarAluna({ ...base, valor: '150.50' }).aluna.valor, 150.5);
+});
