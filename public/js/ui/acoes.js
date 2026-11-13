@@ -2,7 +2,8 @@ import { MSG_SEM_INTERNET, estaOnline, h } from './dom.js';
 import { formatarValor, renderMensagem } from '../core/mensagem.js';
 import { desfazerPaga, marcarPaga } from '../data/pagamentos.js';
 
-// Cartão de aluna e botões Lembrar / Paga / Desfazer, usados nas telas Hoje e Calendário.
+// Cartão de cobrança e botões Lembrar / Paga / Desfazer, usados nas telas Hoje e Calendário.
+// `item` é uma cobrança: { aluna, data, valor, chave, diaTexto }.
 export function criarAcoes({ db, sender, modelo, pix, recarregar }) {
   // Botão que grava no Firestore e recarrega a tela; em caso de falha, avisa no próprio botão.
   const botaoAcao = (rotulo, acao) => {
@@ -26,12 +27,12 @@ export function criarAcoes({ db, sender, modelo, pix, recarregar }) {
   };
 
   return {
-    cartao: ({ aluna }, detalhe, acoes) =>
+    cartao: ({ aluna, valor }, detalhe, acoes) =>
       h(
         'div',
         { class: 'cartao' },
         h('div', { class: 'nome' }, aluna.nome),
-        h('div', { class: 'detalhe' }, [detalhe, formatarValor(aluna.valor)].filter(Boolean).join(' • ')),
+        h('div', { class: 'detalhe' }, [detalhe, formatarValor(valor)].filter(Boolean).join(' • ')),
         h('div', { class: 'acoes' }, acoes),
       ),
 
@@ -40,7 +41,8 @@ export function criarAcoes({ db, sender, modelo, pix, recarregar }) {
       const botao = h('button', { type: 'button', class: 'principal' }, 'Lembrar no WhatsApp');
       botao.addEventListener('click', async () => {
         try {
-          await sender.enviar(item.aluna, renderMensagem(modelo, item.aluna, item.diaEfetivo, pix));
+          const mensagem = renderMensagem(modelo, { nome: item.aluna.nome, valor: item.valor }, item.diaTexto, pix);
+          await sender.enviar(item.aluna, mensagem);
         } catch (erro) {
           console.error(erro);
           botao.textContent = 'Falhou, tente de novo';
@@ -49,7 +51,7 @@ export function criarAcoes({ db, sender, modelo, pix, recarregar }) {
       return botao;
     },
 
-    paga: (item, mes) => botaoAcao('Paga', () => marcarPaga(db, item.aluna.id, mes)),
-    desfazer: (item, mes) => botaoAcao('Desfazer', () => desfazerPaga(db, item.aluna.id, mes)),
+    paga: (item) => botaoAcao('Paga', () => marcarPaga(db, item.aluna.id, item.chave)),
+    desfazer: (item) => botaoAcao('Desfazer', () => desfazerPaga(db, item.aluna.id, item.chave)),
   };
 }

@@ -52,3 +52,9 @@ form small.erro { display: block; min-height: 1em; }
 .marca.semRegistro { background: var(--sem-registro); }
 .legenda { color: #52606d; font-size: .8rem; margin: .6rem 0 0; }
 .legenda .marca { min-width: .8rem; height: .8rem; padding: 0; vertical-align: middle; }
+[hidden] { display: none !important; }
+form select { display: block; width: 100%; margin-top: .25rem; padding: .6rem; font: inherit; border: 1px solid var(--borda); border-radius: 8px; background: #fff; }
+.secao-parcelas { margin: .6rem 0; font-size: .9rem; }
+.parcela { display: grid; grid-template-columns: 1fr 7rem 2rem; gap: .4rem; align-items: center; margin: .35rem 0; }
+.parcela input { margin: 0; }
+.aviso { color: var(--pendente); }

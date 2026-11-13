@@ -1,22 +1,21 @@
-import { collection, doc, getDocs, query, where, setDoc, deleteDoc, serverTimestamp } from '../firebase.js';
+import { collection, doc, getDocs, setDoc, deleteDoc, serverTimestamp } from '../firebase.js';
+import { chavePagamento } from '../core/cobrancas.js';
 
-export function idDoPagamento(alunaId, mes) {
-  return `${alunaId}_${mes}`;
-}
-
-export async function listarPagamentosDoMes(db, mes) {
-  const snap = await getDocs(query(collection(db, 'pagamentos'), where('mes', '==', mes)));
+// pagamentos/{alunaId}_{chave}: chave = 'AAAA-MM' (mensal) ou 'AAAA-MM-DD' (demais planos).
+export async function listarPagamentos(db) {
+  const snap = await getDocs(collection(db, 'pagamentos'));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-export async function marcarPaga(db, alunaId, mes) {
-  await setDoc(doc(db, 'pagamentos', idDoPagamento(alunaId, mes)), {
+export async function marcarPaga(db, alunaId, chave) {
+  await setDoc(doc(db, 'pagamentos', chavePagamento(alunaId, chave)), {
     alunaId,
-    mes,
+    chave,
+    mes: chave.slice(0, 7),
     pagoEm: serverTimestamp(),
   });
 }
 
-export async function desfazerPaga(db, alunaId, mes) {
-  await deleteDoc(doc(db, 'pagamentos', idDoPagamento(alunaId, mes)));
+export async function desfazerPaga(db, alunaId, chave) {
+  await deleteDoc(doc(db, 'pagamentos', chavePagamento(alunaId, chave)));
 }

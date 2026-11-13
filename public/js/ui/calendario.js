@@ -1,9 +1,10 @@
 import { h, mostrarErro } from './dom.js';
 import { criarAcoes } from './acoes.js';
 import { MESES } from './resumo.js';
-import { chaveDoMes, hojeEmSaoPaulo, mesVizinho, semanasDoMes, statusDoMes } from '../core/vencimentos.js';
+import { hojeEmSaoPaulo, mesVizinho, semanasDoMes } from '../core/vencimentos.js';
+import { cobrancasDoMes, planoDe } from '../core/cobrancas.js';
 import { listarAlunas } from '../data/alunas.js';
-import { listarPagamentosDoMes } from '../data/pagamentos.js';
+import { listarPagamentos } from '../data/pagamentos.js';
 import { lerConfig } from '../data/config.js';
 
 const DIAS_DA_SEMANA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
@@ -21,13 +22,12 @@ export async function telaCalendario(alvo, { db, sender }, ref = null, diaSeleci
   const hoje = hojeEmSaoPaulo();
   const mesRef = ref ?? { ano: hoje.ano, mes: hoje.mes };
   const mesAtual = mesRef.ano === hoje.ano && mesRef.mes === hoje.mes;
-  const chave = chaveDoMes(mesRef);
 
   let alunas, pagamentos, config;
   try {
     [alunas, pagamentos, config] = await Promise.all([
       listarAlunas(db),
-      listarPagamentosDoMes(db, chave),
+      listarPagamentos(db),
       lerConfig(db),
     ]);
   } catch (erro) {
@@ -35,9 +35,9 @@ export async function telaCalendario(alvo, { db, sender }, ref = null, diaSeleci
     return;
   }
 
-  const itens = statusDoMes(alunas, pagamentos, hoje, mesRef);
+  const itens = cobrancasDoMes(alunas, pagamentos, hoje, mesRef);
   const porDia = new Map();
-  for (const item of itens) porDia.set(item.diaEfetivo, [...(porDia.get(item.diaEfetivo) ?? []), item]);
+  for (const item of itens) porDia.set(item.data.dia, [...(porDia.get(item.data.dia) ?? []), item]);
 
   const dia = diaSelecionado ?? (mesAtual ? hoje.dia : null);
   const ir = (novoRef, novoDia = null) => telaCalendario(alvo, { db, sender }, novoRef, novoDia);
@@ -62,8 +62,8 @@ export async function telaCalendario(alvo, { db, sender }, ref = null, diaSeleci
 
   const cartaoDoDia = (item) => {
     const botoes =
-      item.status === 'paga' ? [acoes.desfazer(item, chave)] : [acoes.lembrar(item), acoes.paga(item, chave)];
-    return acoes.cartao(item, ROTULO[item.status], botoes);
+      item.status === 'paga' ? [acoes.desfazer(item)] : [acoes.lembrar(item), acoes.paga(item)];
+    return acoes.cartao(item, `${ROTULO[item.status]} • ${planoDe(item.aluna).rotulo}`, botoes);
   };
 
   const doDiaSelecionado = dia === null ? [] : (porDia.get(dia) ?? []);

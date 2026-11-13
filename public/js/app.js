@@ -9,13 +9,15 @@ import { telaAlunas } from './ui/alunas.js';
 import { telaMensagem } from './ui/mensagem.js';
 
 const raiz = document.getElementById('app');
+// Troca de aba a partir de uma tela (ex.: Renovar na tela Hoje abre Alunas). Definida por mostrarApp.
+let navegar = () => {};
 const sender = new WaMeSender();
 
 const TELAS = [
-  { id: 'hoje', titulo: 'Hoje', montar: (alvo) => telaHoje(alvo, { db, sender }) },
+  { id: 'hoje', titulo: 'Hoje', montar: (alvo) => telaHoje(alvo, { db, sender, navegar }) },
   { id: 'calendario', titulo: 'Calendário', montar: (alvo) => telaCalendario(alvo, { db, sender }) },
   { id: 'resumo', titulo: 'Resumo', montar: (alvo) => telaResumo(alvo, { db }) },
-  { id: 'alunas', titulo: 'Alunas', montar: (alvo) => telaAlunas(alvo, { db }) },
+  { id: 'alunas', titulo: 'Alunas', montar: (alvo, opcoes) => telaAlunas(alvo, { db }, opcoes) },
   { id: 'mensagem', titulo: 'Mensagem', montar: (alvo) => telaMensagem(alvo, { db }) },
 ];
 
@@ -60,14 +62,15 @@ function mostrarApp() {
   let telaAtiva = TELAS[0];
   let diaAberto = hojeEmSaoPaulo();
 
-  function abrir(tela) {
+  function abrir(tela, opcoes = {}) {
     telaAtiva = tela;
     diaAberto = hojeEmSaoPaulo();
     botoes.forEach((botao, i) => botao.classList.toggle('ativa', TELAS[i] === tela));
     const alvo = h('div');
     conteudo.replaceChildren(alvo);
-    tela.montar(alvo);
+    tela.montar(alvo, opcoes);
   }
+  navegar = (id, opcoes) => abrir(TELAS.find((t) => t.id === id), opcoes);
 
   raiz.append(
     h(
