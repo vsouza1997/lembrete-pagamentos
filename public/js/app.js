@@ -44,8 +44,9 @@ function mostrarApp() {
 
   function abrir(tela) {
     botoes.forEach((botao, i) => botao.classList.toggle('ativa', TELAS[i] === tela));
-    limpar(conteudo);
-    tela.montar(conteudo);
+    const alvo = h('div');
+    conteudo.replaceChildren(alvo);
+    tela.montar(alvo);
   }
 
   raiz.append(

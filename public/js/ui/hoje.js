@@ -37,7 +37,8 @@ export async function telaHoje(alvo, { db, sender }) {
       try {
         await acao();
         await recarregar();
-      } catch {
+      } catch (erro) {
+        console.error(erro);
         botao.disabled = false;
         botao.textContent = 'Falhou, tente de novo';
       }
@@ -45,7 +46,7 @@ export async function telaHoje(alvo, { db, sender }) {
     return botao;
   };
 
-  const cartao = ({ aluna, diaEfetivo }, detalhe, acoes) =>
+  const cartao = ({ aluna }, detalhe, acoes) =>
     h(
       'div',
       { class: 'cartao' },
@@ -60,9 +61,14 @@ export async function telaHoje(alvo, { db, sender }) {
   // O botão Lembrar só abre o WhatsApp; não deve recarregar a tela.
   const lembrarSemRecarregar = (item) => {
     const botao = h('button', { type: 'button', class: 'principal' }, 'Lembrar no WhatsApp');
-    botao.addEventListener('click', () =>
-      sender.enviar(item.aluna, renderMensagem(modelo, item.aluna, item.diaEfetivo)),
-    );
+    botao.addEventListener('click', async () => {
+      try {
+        await sender.enviar(item.aluna, renderMensagem(modelo, item.aluna, item.diaEfetivo));
+      } catch (erro) {
+        console.error(erro);
+        botao.textContent = 'Falhou, tente de novo';
+      }
+    });
     return botao;
   };
 
