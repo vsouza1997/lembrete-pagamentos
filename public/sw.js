@@ -1,4 +1,4 @@
-const CACHE = 'lembretes-v1';
+const CACHE = 'lembretes-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -11,27 +11,29 @@ self.addEventListener('activate', (evento) => {
   );
 });
 
-// Cache "stale-while-revalidate" só para o app e para as bibliotecas do Firebase no gstatic.
+// Arquivos do próprio app: rede primeiro (atualizações aparecem na hora), cache só sem internet.
+// Bibliotecas do Firebase no gstatic (URL com versão fixa): cache primeiro.
 // Dados do Firestore têm cache próprio (persistentLocalCache).
 self.addEventListener('fetch', (evento) => {
   const { request } = evento;
   const url = new URL(request.url);
-  const permitido =
-    request.method === 'GET' && (url.origin === self.location.origin || url.hostname === 'www.gstatic.com');
-  if (!permitido) return;
+  const doApp = url.origin === self.location.origin;
+  const daBiblioteca = url.hostname === 'www.gstatic.com';
+  if (request.method !== 'GET' || (!doApp && !daBiblioteca)) return;
   // Rotas do Firebase Auth (/__/auth/*, /__/firebase/*) nunca passam pelo cache.
   if (url.pathname.startsWith('/__/')) return;
 
   evento.respondWith(
     caches.open(CACHE).then(async (cache) => {
       const emCache = await cache.match(request);
-      const rede = fetch(request)
-        .then((resposta) => {
-          if (resposta.ok) cache.put(request, resposta.clone()).catch(() => {});
-          return resposta;
-        })
-        .catch(() => emCache || Response.error());
-      return emCache || rede;
+      if (daBiblioteca && emCache) return emCache;
+      try {
+        const resposta = await fetch(request);
+        if (resposta.ok) cache.put(request, resposta.clone()).catch(() => {});
+        return resposta;
+      } catch {
+        return emCache || Response.error();
+      }
     }),
   );
 });

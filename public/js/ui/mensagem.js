@@ -1,30 +1,37 @@
 import { MSG_SEM_INTERNET, estaOnline, h, mostrarErro } from './dom.js';
-import { MENSAGEM_PADRAO, renderMensagem } from '../core/mensagem.js';
-import { lerModelo, salvarModelo } from '../data/config.js';
+import { MENSAGEM_PADRAO, partesWhatsapp, renderMensagem } from '../core/mensagem.js';
+import { lerConfig, salvarConfig } from '../data/config.js';
 
 const EXEMPLO = { nome: 'Maria Souza', valor: 150 };
 
 export async function telaMensagem(alvo, { db }) {
   alvo.replaceChildren(h('p', {}, 'Carregando…'));
-  let modelo;
+  let config;
   try {
-    modelo = await lerModelo(db);
+    config = await lerConfig(db);
   } catch (erro) {
     mostrarErro(alvo, erro);
     return;
   }
 
-  const texto = h('textarea', { rows: 5, name: 'modelo' });
-  texto.value = modelo;
+  const pix = h('input', { name: 'pix', autocomplete: 'off', autocapitalize: 'off', value: config.pix });
+  const texto = h('textarea', { rows: 10, name: 'modelo' });
+  texto.value = config.modelo;
   const previa = h('div', { class: 'previa' });
   const status = h('small', {}, '');
+
+  // Prévia com o negrito do WhatsApp (*assim*).
   const atualizar = () => {
-    previa.textContent = renderMensagem(texto.value, EXEMPLO, 10);
+    const mensagem = renderMensagem(texto.value, EXEMPLO, 10, pix.value);
+    previa.replaceChildren(
+      ...partesWhatsapp(mensagem).map((parte) => (parte.negrito ? h('strong', {}, parte.texto) : parte.texto)),
+    );
   };
   texto.addEventListener('input', atualizar);
+  pix.addEventListener('input', atualizar);
   atualizar();
 
-  const salvar = h('button', { type: 'button', class: 'principal' }, 'Salvar mensagem');
+  const salvar = h('button', { type: 'button', class: 'principal' }, 'Salvar');
   salvar.addEventListener('click', async () => {
     if (!estaOnline()) {
       status.className = 'erro';
@@ -33,10 +40,11 @@ export async function telaMensagem(alvo, { db }) {
     }
     salvar.disabled = true;
     try {
-      await salvarModelo(db, texto.value.trim() || MENSAGEM_PADRAO);
+      await salvarConfig(db, { texto: texto.value.trim() || MENSAGEM_PADRAO, pix: pix.value.trim() });
       status.className = '';
-      status.textContent = 'Mensagem salva ✓';
-    } catch {
+      status.textContent = 'Salvo ✓';
+    } catch (erro) {
+      console.error(erro);
       status.className = 'erro';
       status.textContent = 'Não foi possível salvar. Tente de novo.';
     }
@@ -51,8 +59,18 @@ export async function telaMensagem(alvo, { db }) {
 
   alvo.replaceChildren(
     h('h2', {}, 'Mensagem do lembrete'),
-    h('p', { class: 'detalhe' }, 'Use {nome} (primeiro nome), {dia} e {valor}.'),
-    h('form', { onSubmit: (e) => e.preventDefault() }, h('label', {}, 'Texto', texto)),
+    h(
+      'form',
+      { onSubmit: (e) => e.preventDefault() },
+      h('label', {}, 'Chave Pix', pix),
+      h('label', {}, 'Texto', texto),
+    ),
+    h(
+      'p',
+      { class: 'detalhe' },
+      'Use {nome} (primeiro nome), {dia}, {valor} e {pix}. Para negrito, coloque o trecho entre *asteriscos*. ' +
+        'A linha do valor ou do Pix some da mensagem quando não há valor ou chave cadastrada.',
+    ),
     h('h2', {}, 'Prévia'),
     previa,
     h('p', {}, salvar, restaurar),

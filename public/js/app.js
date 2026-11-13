@@ -3,6 +3,8 @@ import { h, limpar } from './ui/dom.js';
 import { hojeEmSaoPaulo, mesmoDia } from './core/vencimentos.js';
 import { WaMeSender } from './core/sender.js';
 import { telaHoje } from './ui/hoje.js';
+import { telaCalendario } from './ui/calendario.js';
+import { telaResumo } from './ui/resumo.js';
 import { telaAlunas } from './ui/alunas.js';
 import { telaMensagem } from './ui/mensagem.js';
 
@@ -11,6 +13,8 @@ const sender = new WaMeSender();
 
 const TELAS = [
   { id: 'hoje', titulo: 'Hoje', montar: (alvo) => telaHoje(alvo, { db, sender }) },
+  { id: 'calendario', titulo: 'Calendário', montar: (alvo) => telaCalendario(alvo, { db, sender }) },
+  { id: 'resumo', titulo: 'Resumo', montar: (alvo) => telaResumo(alvo, { db }) },
   { id: 'alunas', titulo: 'Alunas', montar: (alvo) => telaAlunas(alvo, { db }) },
   { id: 'mensagem', titulo: 'Mensagem', montar: (alvo) => telaMensagem(alvo, { db }) },
 ];

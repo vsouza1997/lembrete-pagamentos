@@ -1,9 +1,9 @@
-import { MSG_SEM_INTERNET, estaOnline, h, mostrarErro } from './dom.js';
+import { h, mostrarErro } from './dom.js';
+import { criarAcoes } from './acoes.js';
 import { chaveDoMes, formatarData, hojeEmSaoPaulo, listasDoDia } from '../core/vencimentos.js';
-import { formatarValor, renderMensagem } from '../core/mensagem.js';
 import { listarAlunas } from '../data/alunas.js';
-import { desfazerPaga, listarPagamentosDoMes, marcarPaga } from '../data/pagamentos.js';
-import { lerModelo } from '../data/config.js';
+import { listarPagamentosDoMes } from '../data/pagamentos.js';
+import { lerConfig } from '../data/config.js';
 
 function textoAtraso(dias) {
   return dias === 1 ? '1 dia de atraso' : `${dias} dias de atraso`;
@@ -14,67 +14,20 @@ export async function telaHoje(alvo, { db, sender }) {
   const hoje = hojeEmSaoPaulo();
   const mes = chaveDoMes(hoje);
 
-  let alunas, pagamentos, modelo;
+  let alunas, pagamentos, config;
   try {
-    [alunas, pagamentos, modelo] = await Promise.all([
+    [alunas, pagamentos, config] = await Promise.all([
       listarAlunas(db),
       listarPagamentosDoMes(db, mes),
-      lerModelo(db),
+      lerConfig(db),
     ]);
   } catch (erro) {
     mostrarErro(alvo, erro);
     return;
   }
 
-  const recarregar = () => telaHoje(alvo, { db, sender });
+  const acoes = criarAcoes({ db, sender, ...config, recarregar: () => telaHoje(alvo, { db, sender }) });
   const listas = listasDoDia(alunas, pagamentos, hoje);
-
-  // Botão que executa uma ação assíncrona e recarrega a tela; em caso de falha, avisa no próprio botão.
-  const botaoAcao = (rotulo, classe, acao) => {
-    const botao = h('button', { type: 'button', class: classe }, rotulo);
-    botao.addEventListener('click', async () => {
-      if (!estaOnline()) {
-        botao.textContent = MSG_SEM_INTERNET;
-        return;
-      }
-      botao.disabled = true;
-      try {
-        await acao();
-        await recarregar();
-      } catch (erro) {
-        console.error(erro);
-        botao.disabled = false;
-        botao.textContent = 'Falhou, tente de novo';
-      }
-    });
-    return botao;
-  };
-
-  const cartao = ({ aluna }, detalhe, acoes) =>
-    h(
-      'div',
-      { class: 'cartao' },
-      h('div', { class: 'nome' }, aluna.nome),
-      h('div', { class: 'detalhe' }, [detalhe, formatarValor(aluna.valor)].filter(Boolean).join(' • ')),
-      h('div', { class: 'acoes' }, acoes),
-    );
-
-  const botaoPaga = (item) => botaoAcao('Paga', 'secundario', () => marcarPaga(db, item.aluna.id, mes));
-  const botaoDesfazer = (item) => botaoAcao('Desfazer', 'secundario', () => desfazerPaga(db, item.aluna.id, mes));
-
-  // O botão Lembrar só abre o WhatsApp; não deve recarregar a tela.
-  const lembrarSemRecarregar = (item) => {
-    const botao = h('button', { type: 'button', class: 'principal' }, 'Lembrar no WhatsApp');
-    botao.addEventListener('click', async () => {
-      try {
-        await sender.enviar(item.aluna, renderMensagem(modelo, item.aluna, item.diaEfetivo));
-      } catch (erro) {
-        console.error(erro);
-        botao.textContent = 'Falhou, tente de novo';
-      }
-    });
-    return botao;
-  };
 
   const secao = (titulo, itens, vazio, montar) =>
     h('section', {}, h('h2', {}, `${titulo} (${itens.length})`), itens.length ? itens.map(montar) : h('p', { class: 'vazio' }, vazio));
@@ -82,16 +35,16 @@ export async function telaHoje(alvo, { db, sender }) {
   alvo.replaceChildren(
     h('p', { class: 'detalhe' }, `Hoje: ${formatarData(hoje)}`),
     secao('Vencem hoje', listas.venceHoje, 'Ninguém vence hoje 🎉', (item) =>
-      cartao(item, `Vence dia ${item.diaEfetivo}`, [lembrarSemRecarregar(item), botaoPaga(item)]),
+      acoes.cartao(item, `Vence dia ${item.diaEfetivo}`, [acoes.lembrar(item), acoes.paga(item, mes)]),
     ),
     secao('Atrasadas', listas.atrasadas, 'Nenhuma aluna atrasada.', (item) =>
-      cartao(item, `Venceu dia ${item.diaEfetivo} (${textoAtraso(hoje.dia - item.diaEfetivo)})`, [
-        lembrarSemRecarregar(item),
-        botaoPaga(item),
+      acoes.cartao(item, `Venceu dia ${item.diaEfetivo} (${textoAtraso(hoje.dia - item.diaEfetivo)})`, [
+        acoes.lembrar(item),
+        acoes.paga(item, mes),
       ]),
     ),
     secao('Pagas neste mês', listas.pagas, 'Nenhuma paga ainda.', (item) =>
-      cartao(item, 'Paga neste mês', [botaoDesfazer(item)]),
+      acoes.cartao(item, 'Paga neste mês', [acoes.desfazer(item, mes)]),
     ),
   );
 }

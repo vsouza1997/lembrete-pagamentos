@@ -84,3 +84,61 @@ test('formatarData gera dd/mm/aaaa com zeros a esquerda', () => {
   assert.equal(formatarData({ ano: 2026, mes: 11, dia: 12 }), '12/11/2026');
   assert.equal(formatarData({ ano: 2026, mes: 3, dia: 5 }), '05/03/2026');
 });
+
+import { statusDoMes, resumoDoMes, semanasDoMes, mesVizinho } from '../public/js/core/vencimentos.js';
+
+const al = (id, nome, diaVencimento, valor = null, ativa = true) => ({
+  id, nome, telefone: '5511912345678', diaVencimento, valor, ativa,
+});
+
+test('statusDoMes no mês atual: paga, pendente e atrasada, ordenado por dia', () => {
+  const hoje = { ano: 2025, mes: 3, dia: 10 };
+  const alunas = [al('a', 'Ana', 20), al('b', 'Bia', 5), al('c', 'Carla', 10), al('d', 'Dani', 2), al('e', 'Eva', 1, null, false)];
+  const r = statusDoMes(alunas, [{ alunaId: 'd', mes: '2025-03' }], hoje);
+  assert.deepEqual(
+    r.map((i) => [i.aluna.nome, i.diaEfetivo, i.status]),
+    [['Dani', 2, 'paga'], ['Bia', 5, 'atrasada'], ['Carla', 10, 'pendente'], ['Ana', 20, 'pendente']],
+  );
+});
+
+test('statusDoMes em outro mês: futuro é pendente, passado sem pagamento é semRegistro', () => {
+  const hoje = { ano: 2025, mes: 3, dia: 10 };
+  const alunas = [al('a', 'Ana', 31), al('b', 'Bia', 5)];
+  const pagamentos = [{ alunaId: 'b', mes: '2025-02' }, { alunaId: 'a', mes: '2025-03' }];
+  const fev = statusDoMes(alunas, pagamentos, hoje, { ano: 2025, mes: 2 });
+  assert.deepEqual(fev.map((i) => [i.aluna.nome, i.diaEfetivo, i.status]), [['Bia', 5, 'paga'], ['Ana', 28, 'semRegistro']]);
+  const abr = statusDoMes(alunas, pagamentos, hoje, { ano: 2025, mes: 4 });
+  assert.deepEqual(abr.map((i) => i.status), ['pendente', 'pendente']);
+  const dezAnterior = statusDoMes(alunas, [], { ano: 2026, mes: 1, dia: 5 }, { ano: 2025, mes: 12 });
+  assert.deepEqual(dezAnterior.map((i) => i.status), ['semRegistro', 'semRegistro']);
+});
+
+test('resumoDoMes soma valores e conta status', () => {
+  const hoje = { ano: 2025, mes: 3, dia: 10 };
+  const alunas = [al('a', 'Ana', 20, 100), al('b', 'Bia', 5, 150.5), al('c', 'Carla', 2, 200), al('d', 'Dani', 3, null)];
+  const itens = statusDoMes(alunas, [{ alunaId: 'c', mes: '2025-03' }], hoje);
+  assert.deepEqual(resumoDoMes(itens), {
+    ativas: 4, semValor: 1, totalMensal: 450.5, recebido: 200, aReceber: 250.5, pagas: 1, pendentes: 1, atrasadas: 2,
+  });
+  assert.deepEqual(resumoDoMes([]), {
+    ativas: 0, semValor: 0, totalMensal: 0, recebido: 0, aReceber: 0, pagas: 0, pendentes: 0, atrasadas: 0,
+  });
+});
+
+test('semanasDoMes monta a grade começando no domingo', () => {
+  // março de 2025 começa num sábado e tem 31 dias
+  const s = semanasDoMes(2025, 3);
+  assert.deepEqual(s[0], [null, null, null, null, null, null, 1]);
+  assert.deepEqual(s[1], [2, 3, 4, 5, 6, 7, 8]);
+  assert.deepEqual(s.at(-1), [30, 31, null, null, null, null, null]);
+  assert.equal(s.length, 6);
+  // fevereiro de 2026 começa num domingo e tem 28 dias: 4 semanas exatas
+  assert.equal(semanasDoMes(2026, 2).length, 4);
+  assert.deepEqual(semanasDoMes(2026, 2)[0], [1, 2, 3, 4, 5, 6, 7]);
+});
+
+test('mesVizinho vira o ano', () => {
+  assert.deepEqual(mesVizinho({ ano: 2025, mes: 12 }, 1), { ano: 2026, mes: 1 });
+  assert.deepEqual(mesVizinho({ ano: 2025, mes: 1 }, -1), { ano: 2024, mes: 12 });
+  assert.deepEqual(mesVizinho({ ano: 2025, mes: 6 }, 1), { ano: 2025, mes: 7 });
+});

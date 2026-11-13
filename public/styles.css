@@ -4,8 +4,8 @@ body { margin: 0; font-family: system-ui, sans-serif; color: var(--texto); backg
 #app { max-width: 560px; margin: 0 auto; padding-bottom: 3rem; }
 .topo { display: flex; justify-content: space-between; align-items: center; padding: 1rem; }
 .topo h1 { margin: 0; font-size: 1.25rem; }
-.abas { display: flex; gap: .5rem; padding: 0 1rem; }
-.abas button { flex: 1; padding: .6rem; border: 1px solid var(--borda); background: #fff; border-radius: 8px; font-size: 1rem; }
+.abas { display: flex; gap: .5rem; padding: 0 1rem; overflow-x: auto; }
+.abas button { flex: 1 0 auto; padding: .6rem .9rem; border: 1px solid var(--borda); background: #fff; border-radius: 8px; font-size: 1rem; }
 .abas button.ativa { background: var(--verde); color: #fff; border-color: var(--verde); }
 .conteudo { padding: 1rem; }
 h2 { font-size: 1rem; margin: 1.5rem 0 .5rem; }
@@ -26,3 +26,29 @@ form input, form textarea { display: block; width: 100%; margin-top: .25rem; pad
 form small.erro { display: block; min-height: 1em; }
 .previa { background: #e7f7ee; border-radius: 10px; padding: .75rem; white-space: pre-wrap; }
 .login { text-align: center; padding: 4rem 1rem; }
+
+:root { --paga: #25a56a; --pendente: #d99a00; --atrasada: #c0392b; --sem-registro: #9aa5b1; }
+.numeros { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.numero { background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: .75rem; }
+.numero .valor { font-size: 1.35rem; font-weight: 700; }
+.numero .rotulo { color: #52606d; font-size: .85rem; }
+.numero.paga .valor { color: var(--paga); }
+.numero.pendente .valor { color: var(--pendente); }
+.numero.atrasada .valor { color: var(--atrasada); }
+.mes { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; }
+.mes button { font-size: 1.25rem; line-height: 1; padding: .4rem .9rem; }
+.grade { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.grade .semana { text-align: center; color: #7b8794; font-size: .8rem; }
+.dia { min-height: 3.4rem; padding: .25rem 0; border: 1px solid var(--borda); border-radius: 8px; background: #fff; color: inherit;
+  display: flex; flex-direction: column; align-items: center; gap: .2rem; }
+.dia.vazio { border: 0; background: none; }
+.dia.hoje .numero-dia { font-weight: 700; color: var(--verde); }
+.dia.selecionado { border: 2px solid var(--verde); }
+.marcas { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; }
+.marca { display: inline-block; min-width: 1.1rem; padding: 0 .25rem; border-radius: 999px; color: #fff; font-size: .7rem; line-height: 1.1rem; text-align: center; }
+.marca.paga { background: var(--paga); }
+.marca.pendente { background: var(--pendente); }
+.marca.atrasada { background: var(--atrasada); }
+.marca.semRegistro { background: var(--sem-registro); }
+.legenda { color: #52606d; font-size: .8rem; margin: .6rem 0 0; }
+.legenda .marca { min-width: .8rem; height: .8rem; padding: 0; vertical-align: middle; }

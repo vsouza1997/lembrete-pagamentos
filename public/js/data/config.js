@@ -1,12 +1,13 @@
 import { doc, getDoc, setDoc } from '../firebase.js';
 import { MENSAGEM_PADRAO } from '../core/mensagem.js';
 
-export async function lerModelo(db) {
+// config/mensagem = { texto, pix }
+export async function lerConfig(db) {
   const snap = await getDoc(doc(db, 'config', 'mensagem'));
-  const texto = snap.exists() ? snap.data().texto : null;
-  return texto || MENSAGEM_PADRAO;
+  const dados = snap.exists() ? snap.data() : {};
+  return { modelo: dados.texto || MENSAGEM_PADRAO, pix: dados.pix || '' };
 }
 
-export async function salvarModelo(db, texto) {
-  await setDoc(doc(db, 'config', 'mensagem'), { texto });
+export async function salvarConfig(db, { texto, pix }) {
+  await setDoc(doc(db, 'config', 'mensagem'), { texto, pix });
 }
