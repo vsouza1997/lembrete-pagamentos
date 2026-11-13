@@ -2,11 +2,17 @@ import { db, observarLogin, entrarComGoogle, sair } from './firebase.js';
 import { h, limpar } from './ui/dom.js';
 import { WaMeSender } from './core/sender.js';
 import { telaHoje } from './ui/hoje.js';
+import { telaAlunas } from './ui/alunas.js';
+import { telaMensagem } from './ui/mensagem.js';
 
 const raiz = document.getElementById('app');
 const sender = new WaMeSender();
 
-const TELAS = [{ id: 'hoje', titulo: 'Hoje', montar: (alvo) => telaHoje(alvo, { db, sender }) }];
+const TELAS = [
+  { id: 'hoje', titulo: 'Hoje', montar: (alvo) => telaHoje(alvo, { db, sender }) },
+  { id: 'alunas', titulo: 'Alunas', montar: (alvo) => telaAlunas(alvo, { db }) },
+  { id: 'mensagem', titulo: 'Mensagem', montar: (alvo) => telaMensagem(alvo, { db }) },
+];
 
 function mostrarLogin(mensagemErro = '') {
   limpar(raiz);
