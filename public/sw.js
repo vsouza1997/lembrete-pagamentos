@@ -19,13 +19,15 @@ self.addEventListener('fetch', (evento) => {
   const permitido =
     request.method === 'GET' && (url.origin === self.location.origin || url.hostname === 'www.gstatic.com');
   if (!permitido) return;
+  // Rotas do Firebase Auth (/__/auth/*, /__/firebase/*) nunca passam pelo cache.
+  if (url.pathname.startsWith('/__/')) return;
 
   evento.respondWith(
     caches.open(CACHE).then(async (cache) => {
       const emCache = await cache.match(request);
       const rede = fetch(request)
         .then((resposta) => {
-          if (resposta.ok) cache.put(request, resposta.clone());
+          if (resposta.ok) cache.put(request, resposta.clone()).catch(() => {});
           return resposta;
         })
         .catch(() => emCache || Response.error());
