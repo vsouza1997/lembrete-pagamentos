@@ -1,4 +1,4 @@
-const CACHE = 'lembretes-v2';
+const CACHE = 'lembretes-v3';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -28,7 +28,8 @@ self.addEventListener('fetch', (evento) => {
       const emCache = await cache.match(request);
       if (daBiblioteca && emCache) return emCache;
       try {
-        const resposta = await fetch(request);
+        // 'no-cache' revalida com o servidor, para o cache HTTP de 10 min do GitHub Pages não segurar versão antiga.
+        const resposta = await (doApp ? fetch(request.url, { cache: 'no-cache' }) : fetch(request));
         if (resposta.ok) cache.put(request, resposta.clone()).catch(() => {});
         return resposta;
       } catch {
