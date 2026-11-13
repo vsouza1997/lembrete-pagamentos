@@ -1,4 +1,4 @@
-import { h, mostrarErro } from './dom.js';
+import { MSG_SEM_INTERNET, estaOnline, h, mostrarErro } from './dom.js';
 import { MENSAGEM_PADRAO, renderMensagem } from '../core/mensagem.js';
 import { lerModelo, salvarModelo } from '../data/config.js';
 
@@ -26,6 +26,11 @@ export async function telaMensagem(alvo, { db }) {
 
   const salvar = h('button', { type: 'button', class: 'principal' }, 'Salvar mensagem');
   salvar.addEventListener('click', async () => {
+    if (!estaOnline()) {
+      status.className = 'erro';
+      status.textContent = MSG_SEM_INTERNET;
+      return;
+    }
     salvar.disabled = true;
     try {
       await salvarModelo(db, texto.value.trim() || MENSAGEM_PADRAO);

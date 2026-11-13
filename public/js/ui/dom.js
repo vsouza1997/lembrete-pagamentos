@@ -12,11 +12,18 @@ export function h(tag, atributos = {}, ...filhos) {
   return el;
 }
 
+export const MSG_SEM_INTERNET = 'Sem internet. Tente de novo quando a conexão voltar.';
+
+export function estaOnline() {
+  return navigator.onLine !== false;
+}
+
 export function limpar(el) {
   el.replaceChildren();
 }
 
 export function mostrarErro(alvo, erro) {
+  console.error(erro);
   const semPermissao = erro?.code === 'permission-denied';
   alvo.replaceChildren(
     h(

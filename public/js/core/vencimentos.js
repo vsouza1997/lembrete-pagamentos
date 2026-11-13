@@ -23,6 +23,14 @@ export function chaveDoMes({ ano, mes }) {
   return `${ano}-${String(mes).padStart(2, '0')}`;
 }
 
+export function mesmoDia(a, b) {
+  return a.ano === b.ano && a.mes === b.mes && a.dia === b.dia;
+}
+
+export function formatarData({ ano, mes, dia }) {
+  return `${String(dia).padStart(2, '0')}/${String(mes).padStart(2, '0')}/${ano}`;
+}
+
 export function listasDoDia(alunas, pagamentos, hoje) {
   const chave = chaveDoMes(hoje);
   const pagas = new Set(pagamentos.filter((p) => p.mes === chave).map((p) => p.alunaId));

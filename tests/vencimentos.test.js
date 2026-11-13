@@ -6,6 +6,8 @@ import {
   hojeEmSaoPaulo,
   chaveDoMes,
   listasDoDia,
+  mesmoDia,
+  formatarData,
 } from '../public/js/core/vencimentos.js';
 
 test('ultimoDiaDoMes cobre fevereiro, bissexto, 30 e 31 dias', () => {
@@ -69,4 +71,16 @@ test('listasDoDia trata dia 31 em fevereiro', () => {
   const alunas = [aluna('a', 'Ana', 31)];
   assert.equal(listasDoDia(alunas, [], { ano: 2025, mes: 2, dia: 27 }).venceHoje.length, 0);
   assert.equal(listasDoDia(alunas, [], { ano: 2025, mes: 2, dia: 28 }).venceHoje.length, 1);
+});
+
+test('mesmoDia compara ano, mes e dia', () => {
+  assert.equal(mesmoDia({ ano: 2026, mes: 11, dia: 12 }, { ano: 2026, mes: 11, dia: 12 }), true);
+  assert.equal(mesmoDia({ ano: 2026, mes: 11, dia: 12 }, { ano: 2026, mes: 11, dia: 13 }), false);
+  assert.equal(mesmoDia({ ano: 2026, mes: 11, dia: 30 }, { ano: 2026, mes: 12, dia: 30 }), false);
+  assert.equal(mesmoDia({ ano: 2026, mes: 12, dia: 31 }, { ano: 2027, mes: 12, dia: 31 }), false);
+});
+
+test('formatarData gera dd/mm/aaaa com zeros a esquerda', () => {
+  assert.equal(formatarData({ ano: 2026, mes: 11, dia: 12 }), '12/11/2026');
+  assert.equal(formatarData({ ano: 2026, mes: 3, dia: 5 }), '05/03/2026');
 });

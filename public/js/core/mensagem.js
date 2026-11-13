@@ -5,7 +5,7 @@ export function formatarValor(valor) {
   if (valor === null || valor === undefined || valor === '') return '';
   return Number(valor)
     .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-    .replace(/ /g, ' ');
+    .replace(/\u00a0/g, ' ');
 }
 
 export function renderMensagem(modelo, aluna, diaEfetivo) {

@@ -1,4 +1,4 @@
-import { h, mostrarErro } from './dom.js';
+import { MSG_SEM_INTERNET, estaOnline, h, mostrarErro } from './dom.js';
 import { validarAluna } from '../core/aluna.js';
 import { formatarValor } from '../core/mensagem.js';
 import { listarAlunas, salvarAluna } from '../data/alunas.js';
@@ -45,8 +45,12 @@ function formulario(db, aluna, aoSalvar, aoCancelar) {
         for (const [chave, c] of Object.entries(campos)) c.erro.textContent = r.erros[chave] ?? '';
         if (!r.ok) return;
 
-        botao.disabled = true;
         geral.textContent = '';
+        if (!estaOnline()) {
+          geral.textContent = MSG_SEM_INTERNET;
+          return;
+        }
+        botao.disabled = true;
         try {
           await salvarAluna(db, { ...r.aluna, ativa: aluna?.ativa ?? true, id: aluna?.id });
           aoSalvar();
@@ -74,6 +78,10 @@ function linhaAluna(aluna, { aoEditar, aoAlternar }) {
     .join(' • ');
   const alternar = h('button', { type: 'button', class: 'secundario' }, aluna.ativa ? 'Desativar' : 'Ativar');
   alternar.addEventListener('click', async () => {
+    if (!estaOnline()) {
+      alternar.textContent = MSG_SEM_INTERNET;
+      return;
+    }
     alternar.disabled = true;
     try {
       await aoAlternar();

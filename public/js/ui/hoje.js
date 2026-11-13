@@ -1,5 +1,5 @@
-import { h, mostrarErro } from './dom.js';
-import { chaveDoMes, hojeEmSaoPaulo, listasDoDia } from '../core/vencimentos.js';
+import { MSG_SEM_INTERNET, estaOnline, h, mostrarErro } from './dom.js';
+import { chaveDoMes, formatarData, hojeEmSaoPaulo, listasDoDia } from '../core/vencimentos.js';
 import { formatarValor, renderMensagem } from '../core/mensagem.js';
 import { listarAlunas } from '../data/alunas.js';
 import { desfazerPaga, listarPagamentosDoMes, marcarPaga } from '../data/pagamentos.js';
@@ -33,6 +33,10 @@ export async function telaHoje(alvo, { db, sender }) {
   const botaoAcao = (rotulo, classe, acao) => {
     const botao = h('button', { type: 'button', class: classe }, rotulo);
     botao.addEventListener('click', async () => {
+      if (!estaOnline()) {
+        botao.textContent = MSG_SEM_INTERNET;
+        return;
+      }
       botao.disabled = true;
       try {
         await acao();
@@ -76,6 +80,7 @@ export async function telaHoje(alvo, { db, sender }) {
     h('section', {}, h('h2', {}, `${titulo} (${itens.length})`), itens.length ? itens.map(montar) : h('p', { class: 'vazio' }, vazio));
 
   alvo.replaceChildren(
+    h('p', { class: 'detalhe' }, `Hoje: ${formatarData(hoje)}`),
     secao('Vencem hoje', listas.venceHoje, 'Ninguém vence hoje 🎉', (item) =>
       cartao(item, `Vence dia ${item.diaEfetivo}`, [lembrarSemRecarregar(item), botaoPaga(item)]),
     ),
